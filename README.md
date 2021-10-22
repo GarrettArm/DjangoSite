@@ -1,9 +1,26 @@
+The site is containerized: one docker for gunicorn+webapp, one for nginx, one for postgres. Plus a couple of volumes for non-ephemeral data.
 
+To run them:
 
-The site is containerized: one docker for gunicorn+webapp, one for nginx, one for postgres. Plus a couple of volumes for non-ephemeral data.  To run them:
+  - create a file ./DjangoSite/.env with contents:
+  ```
+  PROD_SECRET_KEY=CHANGEME
+  POSTGRES_HOST=db
+  POSTGRES_PORT=5432
+  POSTGRES_DB=djangosite
+  POSTGRES_USER=postgres
+  POSTGRES_PASSWORD=CHANGEME
+  ```
 
-  - ./build.sh
-  - app is at localhost or 127.0.0.1
+  ```
+  docker-compose up
+  docker-compose run webapp python3 manage.py makemigrations contact polls etextbook milage ajax_polls shwagswap --settings=site_core.settings.development
+  docker-compose run webapp python3 manage.py migrate --settings=site_core.settings.development
+  docker-compose run webapp python3 manage.py createsuperuser --settings=site_core.settings.development
+  docker-compose run webapp python3 manage.py collectstatic --settings=site_core.settings.development
+  ```
+  
+  - the site should load at localhost:8000
 
 To stop:
 

@@ -1,3 +1,5 @@
+# For running on a fresh ubuntu install on AWS
+
 !# /bin/sh
 echo Building GarrettArm/DjangoSite
 sudo apt update

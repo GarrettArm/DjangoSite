@@ -1,27 +1,28 @@
 version: '3'
 
-
 services:
   db:
-    image: postgres
-    container_name: DjangoSitePostgres
+    platform: linux/x86_64/v8
+    image: amd64/postgres:10
+    container_name: db
     restart: always
+    env_file: .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./sample_data:/docker-entrypoint-initdb.d/
+      - ./db_autoimport:/docker-entrypoint-initdb.d/
     networks:
       - postgres_network
 
   webapp:
+    platform: linux/x86_64/v8
     build: ./mysite_project
-    container_name: DjangoSiteDjango
+    container_name: webapp
+    env_file: .env
     command: gunicorn -w 3 -b :8000 site_core.wsgi
     volumes:
       - mysite_project:/code/
       - static_volume:/var/www/django/static
       - media_volume:/var/www/django/media
-    env_file:
-      - ../django_secret_key.txt
     networks:
       - nginx_network
       - postgres_network
@@ -29,11 +30,11 @@ services:
       - db
 
   nginx:
-    image: nginx:latest
-    container_name: DjangoSiteNginx
+    platform: linux/x86_64/v8
+    image: amd64/nginx:latest
+    container_name: nginx
     volumes:
       - ./config/nginx/conf.d:/etc/nginx/conf.d
-      - /etc/letsencrypt/:/etc/letsencrypt/
       - static_volume:/var/www/django/static
       - media_volume:/var/www/django/media
     ports:
