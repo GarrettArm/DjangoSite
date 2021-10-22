@@ -3,7 +3,7 @@ version: '3'
 services:
   db:
     platform: linux/x86_64/v8
-    image: amd64/postgres:10
+    image: amd64/postgres:14
     container_name: db
     restart: always
     env_file: .env
