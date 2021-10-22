@@ -30,16 +30,31 @@ Rebuilding app server (i.e., after editing code):
 
   - ./wipe_volumes.sh
 
-A sample database dump can be placed in folder /sample_data, which will be ingested into postgres if there is an empty postgres_data volume.  To create a sample database dump, create the data using the webapp then dump it:
 
- - docker-compose exec db pg_dump -U postgres postgres > ./sample_data/sample_db.sql
+## Preserving the db data
 
-[[ The following are old instructions that might still have a kernel of truth, these are baked into mysite_project/site_core/Dockerfile ]]
+The volume "djangosite_postgres_data" persists the postgres data between container restarts.  However, I like to blow up the db on each restart, and thus included the line "docker volume rm djangosite_postgres_data" in my quick reset script, "full_refresh.sh"
 
+You may prefer to remove that line from full_refresh.sh.  In that case, the pg data will persist from rebuild to rebuild.  You could stop reading here.
 
-There are two settings files:  development & production.
+But if you also want to blow your db on each restart, then make a sqldump anytime your db gets to a good place.
 
-    specify the settings when running python manage, E.g., 
+```bash
+docker-compose exec db pg_dump -U postgres postgres > ./db_autoimport/db.sql
+```
 
-        '--settings=site_core.settings.production' or 
-        '--settings=site_core.settings.development'
+Any sqldump found in db_autoimport will be autoimported into the pg container on next container start, if there is no djangosite_postgres_data volume.
+
+Removing the djangosite_postgres_data volume is therefore the switch.  If the volume is present, pg uses the previous run's db data.  If it's absent, pg creates a new db using the sqldump data.
+
+(The third case:  no volume & no sqldump gets a default db.  Django's migrate tool creates a sensible default db based on the app's models files.)
+
+## Production versus development settings
+
+This box is set to use the dev settings.  site_core/wsgi.py has a line with `--settings=site_core.settings.development`.  
+
+The dev settings add a dev toolbar module.
+
+But if you want to see what the prod site looks like (or you're running this on production), then change that line to `--settings=site_core.settings.production`.
+
+Also, you'll note all the commands (including "full_refresh.sh") would need to be changed to match.
